@@ -1,0 +1,8 @@
+[package]
+name = "RES"
+version = "0.1.0"
+authors = ["Nathaniel P. Dawson <nathaniel.dawson@gmail.com>"]
+
+[dependencies]
+enum_primitive = "0.1.0"
+num = "0.1.35"
