@@ -1,5 +1,6 @@
 const RAM_SIZE: usize = 2048;
 
+use nes::Mmu;
 use super::instruction::Instruction;
 use super::opcode::Opcode::*;
 use super::opcode::AddrMode::*;
@@ -12,15 +13,10 @@ pub struct Cpu {
     reg_pc: u16,
     reg_s: u8,
     reg_p: u8,
-    rom: Box<[u8]>,
-    // RAM
-    ram: Box<[u8]>,
-    // PPU Regs
-    ppu_reg: Box<[u8]>,
 }
 
 impl Cpu {
-    pub fn new(romfile: Box<[u8]>) -> Cpu {
+    pub fn new() -> Cpu {
         Cpu {
             reg_a: 0,
             reg_x: 0,
@@ -28,9 +24,6 @@ impl Cpu {
             reg_pc: 0, // TODO
             reg_s: 0xFD,
             reg_p: 0x34, // IRQ disabled
-            rom: romfile,
-            ram: vec![0; RAM_SIZE].into_boxed_slice(),
-            ppu_reg: vec![0; 8].into_boxed_slice(),
         }
     }
 
@@ -42,15 +35,15 @@ impl Cpu {
         // APU silenced (0x4015 = 0)
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self, mmu: &mut Mmu) {
         println!("{:#X}", self.reg_pc);
         let byte = self.read_byte(self.reg_pc as usize);
         let opcode = Instruction::new(byte);
         self.reg_pc += 1;
-        self.run_instruction(opcode);
+        self.run_instruction(mmu, opcode);
     }
 
-    fn run_instruction(&mut self, op: Instruction) {
+    fn run_instruction(&mut self, mmu: &mut Mmu, op: Instruction) {
         match op.opcode {
             And => {
                 match op.addrmode {
